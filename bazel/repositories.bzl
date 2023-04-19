@@ -289,6 +289,7 @@ def envoy_dependencies(skip_targets = []):
     _org_boost()
     _org_brotli()
     _com_github_facebook_zstd()
+    _com_github_qat_zstd()
     _re2()
     _upb()
     _proxy_wasm_cpp_sdk()
@@ -487,6 +488,10 @@ def _com_github_intel_qatlib():
         ],
         patch_args = ["-p1"],
     )
+    native.bind(
+        name = "qatlib",
+        actual = "@envoy//bazel/foreign_cc:qatlib",
+    )
 
 def _com_github_jbeder_yaml_cpp():
     external_http_archive(
@@ -597,6 +602,17 @@ def _com_github_facebook_zstd():
     native.bind(
         name = "zstd",
         actual = "@envoy//bazel/foreign_cc:zstd",
+    )
+
+def _com_github_qat_zstd():
+    external_http_archive(
+        name = "com_github_qat_zstd",
+        build_file_content = BUILD_ALL_CONTENT,
+    )
+
+    native.bind(
+        name = "qat-zstd",
+        actual = "@envoy//bazel/foreign_cc:qat-zstd",
     )
 
 def _com_google_cel_cpp():

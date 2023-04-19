@@ -675,8 +675,8 @@ REPOSITORY_LOCATIONS_SPEC = dict(
         project_name = "zstd",
         project_desc = "zstd compression library",
         project_url = "https://facebook.github.io/zstd",
-        version = "1.5.5",
-        sha256 = "98e9c3d949d1b924e28e01eccb7deed865eefebf25c2f21c702e5cd5b63b85e1",
+        version = "1.5.4",
+        sha256 = "35ad983197f8f8eb0c963877bf8be50490a0b3df54b4edeb8399ba8a8b2f60a4",
         strip_prefix = "zstd-{version}",
         urls = ["https://github.com/facebook/zstd/archive/v{version}.tar.gz"],
         use_category = ["dataplane_ext"],
@@ -1366,6 +1366,22 @@ REPOSITORY_LOCATIONS_SPEC = dict(
         license = "Apache-2.0",
         license_url = "https://github.com/bazelbuild/rules_license/blob/{version}/LICENSE",
     ),
+    com_github_qat_zstd = dict(
+        project_name = "qat zstd",
+        project_desc = "qat zstd compression plugin",
+        project_url = "https://github.com/qiming-007/qat-zstd",
+        version = "0.5",
+        sha256 = "f6bc291b8319f730f21acbb4ba66b1b727c53b765181f4d8601c894baf2176db",
+        strip_prefix = "qat-zstd-{version}",
+        urls = ["https://github.com/qiming-007/qat-zstd/archive/refs/tags/v{version}.tar.gz"],
+        use_category = ["dataplane_ext"],
+        extensions = [
+            "envoy.compression.zstd.compressor",
+            "envoy.compression.zstd.decompressor",
+        ],        
+        release_date = "2023-04-19",
+        cpe = "N/A",
+    ),    
 )
 
 def _compiled_protoc_deps(locations, versions):
