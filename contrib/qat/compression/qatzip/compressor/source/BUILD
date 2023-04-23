@@ -17,7 +17,7 @@ configure_make(
     configure_options = [
         "--enable-static",
         "--disable-shared",
-        "--enable-debug",
+        # "--enable-debug",
     ],
     env = select({
         "//bazel:clang_build": {
