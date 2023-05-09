@@ -413,8 +413,8 @@ def _com_github_intel_qatzip():
         build_file_content = BUILD_ALL_CONTENT,
         patch_args = ["-p1"],
         patches = [
-            "@envoy//bazel/foreign_cc:qatzip-0003-Fix-a-data-race-in-qzMemRegAddr.patch",
-            "@envoy//bazel/foreign_cc:qatzip-0004-Fix-various-data-races.patch",
+            "@envoy//bazel/foreign_cc:0001-QATAPP-29732-remove-assert-in-streamBuffer-and-getNo.patch",
+            # "@envoy//bazel/foreign_cc:qatzip-0004-Fix-various-data-races.patch",
         ],
     )
 

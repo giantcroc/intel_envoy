@@ -1,0 +1,98 @@
+From 5ae99b92fa91aa87ef5e8886865e46785c302586 Mon Sep 17 00:00:00 2001
+From: Chengfei Zhu <chengfei.zhu@intel.com>
+Date: Mon, 8 May 2023 11:05:56 +0800
+Subject: [PATCH] QATAPP-29732: remove assert in streamBuffer* and
+ getNodeBuffFromFreeList
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Using “-c opt” optimization that will disable all asserts by default,
+this will casue qatzip coredump. Removing assert from streamBuffer*
+getNodeBuffFromFreeList to fix this issue.
+
+Change-Id: Ib0b4d95ec3315833972c6e57ebcc2c5bba470b5b
+Signed-off-by: Chengfei Zhu <chengfei.zhu@intel.com>
+---
+ src/qatzip_stream.c | 42 ++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 34 insertions(+), 8 deletions(-)
+
+diff --git a/src/qatzip_stream.c b/src/qatzip_stream.c
+index 4d52987..7952ae4 100644
+--- a/src/qatzip_stream.c
++++ b/src/qatzip_stream.c
+@@ -171,8 +171,15 @@ void streamBufferCleanup()
+ 
+ static void *getNodeBuffFromFreeList(size_t sz, int pinned)
+ {
+-    assert(!pthread_mutex_lock(&g_strm_buff_list_free.mutex));
+-    assert(!pthread_mutex_lock(&g_strm_buff_list_used.mutex));
++
++    if (unlikely(0 != pthread_mutex_lock(&g_strm_buff_list_free.mutex))) {
++        QZ_ERROR("Failed to get Mutex Lock.\n");
++        return NULL;
++    }
++    if (unlikely(0 != pthread_mutex_lock(&g_strm_buff_list_used.mutex))) {
++        QZ_ERROR("Failed to get Mutex Lock.\n");
++        return NULL;
++    }
+ 
+     void *retval  = NULL;
+     StreamBuffNode_T *node;
+@@ -194,8 +201,14 @@ static void *getNodeBuffFromFreeList(size_t sz, int pinned)
+     }
+ 
+ done:
+-    assert(!pthread_mutex_unlock(&g_strm_buff_list_used.mutex));
+-    assert(!pthread_mutex_unlock(&g_strm_buff_list_free.mutex));
++    if (unlikely(0 != pthread_mutex_unlock(&g_strm_buff_list_used.mutex))) {
++        QZ_ERROR("Failed to release Mutex Lock.\n");
++        return NULL;
++    }
++    if (unlikely(0 != pthread_mutex_unlock(&g_strm_buff_list_free.mutex))) {
++        QZ_ERROR("Failed to release Mutex Lock.\n");
++        return NULL;
++    }
+     return retval;
+ }
+ 
+@@ -251,10 +264,17 @@ static void *streamBufferAlloc(size_t sz, int numa, int pinned)
+ 
+ static void streamBufferFree(void *addr)
+ {
++    if (unlikely(0 != pthread_mutex_lock(&g_strm_buff_list_free.mutex))) {
++        QZ_ERROR("Failed to get Mutex Lock.\n");
++        return;
++    }
++    if (unlikely(0 != pthread_mutex_lock(&g_strm_buff_list_used.mutex))) {
++        QZ_ERROR("Failed to get Mutex Lock.\n");
++        return;
++    }
++
+     StreamBuffNode_T *node;
+ 
+-    assert(!pthread_mutex_lock(&g_strm_buff_list_free.mutex));
+-    assert(!pthread_mutex_lock(&g_strm_buff_list_used.mutex));
+     for (node = g_strm_buff_list_used.head; node != NULL; node = node->next) {
+         if (addr == node->buffer) {
+             if (removeNodeFromList(node, &g_strm_buff_list_used) == FAILURE) {
+@@ -273,8 +293,14 @@ static void streamBufferFree(void *addr)
+     }
+ 
+ done:
+-    assert(!pthread_mutex_unlock(&g_strm_buff_list_used.mutex));
+-    assert(!pthread_mutex_unlock(&g_strm_buff_list_free.mutex));
++    if (unlikely(0 != pthread_mutex_unlock(&g_strm_buff_list_used.mutex))) {
++        QZ_ERROR("Failed to release Mutex Lock.\n");
++        return;
++    }
++    if (unlikely(0 != pthread_mutex_unlock(&g_strm_buff_list_free.mutex))) {
++        QZ_ERROR("Failed to release Mutex Lock.\n");
++        return;
++    }
+ }
+ 
+ int initStream(QzSession_T *sess, QzStream_T *strm)
+-- 
+2.27.0
+
