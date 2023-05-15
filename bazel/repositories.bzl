@@ -179,6 +179,7 @@ def envoy_dependencies(skip_targets = []):
     _com_github_intel_ipp_crypto_crypto_mb()
     _com_github_intel_qatlib()
     _com_github_intel_qatzip()
+    _com_github_intel_qat_engine()
     _com_github_lz4_lz4()
     _com_github_jbeder_yaml_cpp()
     _com_github_libevent_libevent()
@@ -416,6 +417,12 @@ def _com_github_intel_qatzip():
             "@envoy//bazel/foreign_cc:qatzip-0003-Fix-a-data-race-in-qzMemRegAddr.patch",
             "@envoy//bazel/foreign_cc:qatzip-0004-Fix-various-data-races.patch",
         ],
+    )
+
+def _com_github_intel_qat_engine():
+    external_http_archive(
+        name = "com_github_intel_qat_engine",
+        build_file_content = BUILD_ALL_CONTENT,
     )
 
 def _com_github_lz4_lz4():

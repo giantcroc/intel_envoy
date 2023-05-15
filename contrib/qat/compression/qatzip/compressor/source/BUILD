@@ -38,12 +38,41 @@ configure_make(
     alwayslink = False,
 )
 
+configure_make(
+    name = "qat_engine",
+    autogen = True,
+    configure_in_place = True,
+    configure_options = [
+        "--enable-static",
+        "--enable-shared=no",
+        "--with-openssl_install_dir=$EXT_BUILD_DEPS",
+    ],
+    env = select({
+        "//bazel:clang_build": {
+            "CFLAGS": "-Wno-error=newline-eof",
+        },
+        "//conditions:default": {},
+    }),
+    lib_source = "@com_github_intel_qat_engine//:all",
+    out_static_libs = [
+        "libqatengine.a",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//contrib/qat:qatlib",
+        "//external:ssl",
+        "//external:crypto",
+    ],
+    alwayslink = False,
+)
+
 envoy_cc_library(
     name = "compressor_lib",
     srcs = ["qatzip_compressor_impl.cc"],
     hdrs = ["qatzip_compressor_impl.h"],
     deps = [
         ":qatzip",
+        ":qat_engine",
         "//envoy/compression/compressor:compressor_interface",
     ],
 )
