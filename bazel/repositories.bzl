@@ -609,7 +609,7 @@ def _com_github_qat_zstd():
         name = "com_github_qat_zstd",
         build_file_content = BUILD_ALL_CONTENT,
         patch_args = ["-p1"],
-        patches = ["@envoy//bazel/foreign_cc:qatzstd.patch"],
+        patches = ["@envoy//bazel/foreign_cc:qatzstd1.patch"],
     )
 
     native.bind(
