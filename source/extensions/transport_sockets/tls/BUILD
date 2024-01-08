@@ -5,6 +5,8 @@ load(
     "envoy_extension_package",
 )
 
+load("@rules_foreign_cc//foreign_cc:configure.bzl", "configure_make")
+
 licenses(["notice"])  # Apache 2
 
 # Built-in TLS connection transport socket.
@@ -139,6 +141,34 @@ envoy_cc_library(
     ],
 )
 
+configure_make(
+    name = "qatzip",
+    autogen = True,
+    configure_in_place = True,
+    configure_options = [
+        "--enable-static",
+        "--disable-shared",
+    ],
+    env = select({
+        "//bazel:clang_build": {
+            "CFLAGS": "-Wno-error=newline-eof",
+        },
+        "//conditions:default": {},
+    }),
+    lib_source = "@com_github_intel_qatzip//:all",
+    out_static_libs = [
+        "libqatzip.a",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bazel/foreign_cc:lz4",
+        "//bazel/foreign_cc:zlib",
+        "//contrib/qat:qatlib",
+        "@boringssl//:ssl",
+    ],
+    alwayslink = False,
+)
+
 envoy_cc_library(
     name = "context_lib",
     srcs = [
@@ -157,6 +187,7 @@ envoy_cc_library(
     # TLS is core functionality.
     visibility = ["//visibility:public"],
     deps = [
+        ":qatzip",
         ":stats_lib",
         ":utility_lib",
         "//envoy/ssl:context_config_interface",

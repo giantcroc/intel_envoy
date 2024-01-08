@@ -39,6 +39,9 @@
 #include "openssl/pkcs12.h"
 #include "openssl/rand.h"
 
+#include "zlib.h"
+#include "qatzip.h"
+
 namespace Envoy {
 namespace Extensions {
 namespace TransportSockets {
@@ -77,6 +80,42 @@ int ContextImpl::sslExtendedSocketInfoIndex() {
     RELEASE_ASSERT(ssl_context_index >= 0, "");
     return ssl_context_index;
   }());
+}
+
+// static int zlib_compress(SSL *, CBB* out,
+//                          const uint8_t *in, size_t inlen)
+// {
+
+
+//     size_t outlen = compressBound(inlen);
+
+//     uint8_t * outbuf =new uint8_t[outlen];
+
+//     if (compress2(outbuf, &outlen, in, inlen, Z_DEFAULT_COMPRESSION) != Z_OK){
+//      delete out;
+//      return 0;
+//     }
+//     CBB_add_bytes(out, outbuf, outlen);
+//     return 1;
+// }
+
+static int qatzip_compress(SSL *, CBB* out,
+                         const uint8_t *in, size_t inlen)
+{
+
+
+    unsigned int outlen = compressBound(inlen);
+
+    uint8_t * outbuf =new uint8_t[outlen];
+
+    unsigned int inllen = inlen;
+
+    if (qzCompress(nullptr, in, &inllen, outbuf, &outlen, 1) != QZ_OK){
+     delete out;
+     return 0;
+    }
+    CBB_add_bytes(out, outbuf, outlen);
+    return 1;
 }
 
 ContextImpl::ContextImpl(Stats::Scope& scope, const Envoy::Ssl::ContextConfig& config,
@@ -122,6 +161,12 @@ ContextImpl::ContextImpl(Stats::Scope& scope, const Envoy::Ssl::ContextConfig& c
     RELEASE_ASSERT(rc == 1, Utility::getLastCryptoError().value_or(""));
 
     rc = SSL_CTX_set_max_proto_version(ctx.ssl_ctx_.get(), config.maxProtocolVersion());
+    RELEASE_ASSERT(rc == 1, Utility::getLastCryptoError().value_or(""));
+
+    // rc = SSL_CTX_add_cert_compression_alg(ctx.ssl_ctx_.get(), 1,
+                                    // zlib_compress, nullptr);
+    rc = SSL_CTX_add_cert_compression_alg(ctx.ssl_ctx_.get(), 1,
+                                    qatzip_compress, nullptr);
     RELEASE_ASSERT(rc == 1, Utility::getLastCryptoError().value_or(""));
 
     if (!capabilities_.provides_ciphers_and_curves &&
