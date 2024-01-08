@@ -79,6 +79,25 @@ int ContextImpl::sslExtendedSocketInfoIndex() {
   }());
 }
 
+static int qatzip_compress(SSL *, CBB* out,
+                         const uint8_t *in, size_t inlen)
+{
+
+
+    unsigned int outlen = compressBound(inlen);
+
+    uint8_t * outbuf =new uint8_t[outlen];
+
+    unsigned int inllen = inlen;
+
+    if (qzCompress(nullptr, in, &inllen, outbuf, &outlen, 1) != QZ_OK){
+     delete out;
+     return 0;
+    }
+    CBB_add_bytes(out, outbuf, outlen);
+    return 1;
+}
+
 ContextImpl::ContextImpl(Stats::Scope& scope, const Envoy::Ssl::ContextConfig& config,
                          TimeSource& time_source)
     : scope_(scope), stats_(generateSslStats(scope)), time_source_(time_source),
@@ -262,6 +281,13 @@ ContextImpl::ContextImpl(Stats::Scope& scope, const Envoy::Ssl::ContextConfig& c
                                          "ECDSA certificates are supported in FIPS mode",
                                          ctx.cert_chain_file_path_));
 #endif
+      }
+
+      Envoy::Compression::Compressor::CompressorFactoryPtr compressor_factory =
+        tls_certificate.compressorFactory()
+
+      if (compressor_factory){
+
       }
 
       Envoy::Ssl::PrivateKeyMethodProviderSharedPtr private_key_method_provider =

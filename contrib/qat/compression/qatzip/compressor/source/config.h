@@ -60,7 +60,7 @@ public:
 
   Envoy::Compression::Compressor::CompressorFactoryPtr
   createCompressorFactoryFromProto(const Protobuf::Message& proto_config,
-                                   Server::Configuration::FactoryContext& context) override {
+                                   Server::Configuration::ServerFactoryContext& context) override {
     return createCompressorFactoryFromProtoTyped(
         MessageUtil::downcastAndValidate<
             const envoy::extensions::compression::qatzip::compressor::v3alpha::Qatzip&>(
