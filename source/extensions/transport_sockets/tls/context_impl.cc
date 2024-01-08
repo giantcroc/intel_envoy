@@ -29,6 +29,8 @@
 #include "source/extensions/transport_sockets/tls/cert_validator/factory.h"
 #include "source/extensions/transport_sockets/tls/stats.h"
 #include "source/extensions/transport_sockets/tls/utility.h"
+#include "envoy/compression/compressor/factory.h"
+#include "source/common/buffer/buffer_impl.h"
 
 #include "absl/container/node_hash_set.h"
 #include "absl/strings/match.h"
@@ -79,21 +81,35 @@ int ContextImpl::sslExtendedSocketInfoIndex() {
   }());
 }
 
-static int qatzip_compress(SSL *, CBB* out,
+static int compressor_compress(SSL *ssl, CBB* out,
                          const uint8_t *in, size_t inlen)
 {
 
+    Envoy::Compression::Compressor::CompressorFactory* compressor_factory =
+                                  static_cast<Envoy::Compression::Compressor::CompressorFactory*>(SSL_get_ex_data(
+                                  ssl, ContextImpl::sslSocketIndex1()));
 
-    unsigned int outlen = compressBound(inlen);
-
-    uint8_t * outbuf =new uint8_t[outlen];
-
-    unsigned int inllen = inlen;
-
-    if (qzCompress(nullptr, in, &inllen, outbuf, &outlen, 1) != QZ_OK){
-     delete out;
-     return 0;
+    for(size_t i=0;i<inlen;i++){
+      printf("%d ",in[i]);
     }
+    printf("\n");
+    Envoy::Compression::Compressor::CompressorPtr compressor= compressor_factory->createCompressor();
+    Buffer::OwnedImpl buffer(in, inlen);
+    Buffer::OwnedImpl accumulation_buffer;
+    // compressor->compress(buffer, Envoy::Compression::Compressor::State::Flush);
+    // accumulation_buffer.add(buffer);
+    // buffer.drain(buffer.length());
+    compressor->compress(buffer, Envoy::Compression::Compressor::State::Finish);
+    accumulation_buffer.add(buffer);
+
+    const size_t outlen = accumulation_buffer.length();
+    uint8_t * outbuf =new uint8_t[outlen];
+    accumulation_buffer.copyOut(0, outlen, outbuf);
+
+    for(size_t i=0;i<outlen;i++){
+      printf("%d ",outbuf[i]);
+    }
+    printf("\n");
     CBB_add_bytes(out, outbuf, outlen);
     return 1;
 }
@@ -284,10 +300,14 @@ ContextImpl::ContextImpl(Stats::Scope& scope, const Envoy::Ssl::ContextConfig& c
       }
 
       Envoy::Compression::Compressor::CompressorFactoryPtr compressor_factory =
-        tls_certificate.compressorFactory()
+        tls_certificate.compressorFactory();
 
       if (compressor_factory){
+        ctx.compressor_factory_ = compressor_factory;
 
+        int rc = SSL_CTX_add_cert_compression_alg(ctx.ssl_ctx_.get(), 1,
+                                        compressor_compress, nullptr);
+        RELEASE_ASSERT(rc == 1, Utility::getLastCryptoError().value_or(""));
       }
 
       Envoy::Ssl::PrivateKeyMethodProviderSharedPtr private_key_method_provider =
@@ -434,6 +454,14 @@ int ContextImpl::sslSocketIndex() {
     int ssl_socket_index = SSL_get_ex_new_index(0, nullptr, nullptr, nullptr, nullptr);
     RELEASE_ASSERT(ssl_socket_index >= 0, "");
     return ssl_socket_index;
+  }());
+}
+
+int ContextImpl::sslSocketIndex1() {
+  CONSTRUCT_ON_FIRST_USE(int, []() -> int {
+    int ssl_socket_index1 = SSL_get_ex_new_index(0, nullptr, nullptr, nullptr, nullptr);
+    RELEASE_ASSERT(ssl_socket_index1 >= 0, "");
+    return ssl_socket_index1;
   }());
 }
 
@@ -606,6 +634,17 @@ std::vector<Ssl::PrivateKeyMethodProviderSharedPtr> ContextImpl::getPrivateKeyMe
     }
   }
   return providers;
+}
+
+Envoy::Compression::Compressor::CompressorFactoryPtr ContextImpl::getCompressorFactory(){
+  for (auto& tls_context : tls_contexts_) {
+    Envoy::Compression::Compressor::CompressorFactoryPtr provider =
+        tls_context.getCompressorFactory();
+    if (provider) {
+      return provider;
+    }
+  }
+  return nullptr;
 }
 
 absl::optional<uint32_t> ContextImpl::daysUntilFirstCertExpires() const {

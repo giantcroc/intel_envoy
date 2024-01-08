@@ -29,7 +29,7 @@ class QatzipCompressorFactory : public Envoy::Compression::Compressor::Compresso
 public:
   QatzipCompressorFactory(
       const envoy::extensions::compression::qatzip::compressor::v3alpha::Qatzip& qatzip,
-      Server::Configuration::FactoryContext& context);
+      Server::Configuration::ServerFactoryContext& context);
 
   // Envoy::Compression::Compressor::CompressorFactory
   Envoy::Compression::Compressor::CompressorPtr createCompressor() override;
@@ -77,7 +77,7 @@ public:
 private:
   Envoy::Compression::Compressor::CompressorFactoryPtr createCompressorFactoryFromProtoTyped(
       const envoy::extensions::compression::qatzip::compressor::v3alpha::Qatzip& config,
-      Server::Configuration::FactoryContext& context);
+      Server::Configuration::ServerFactoryContext& context);
 
   const std::string name_;
 };

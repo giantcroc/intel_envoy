@@ -76,6 +76,9 @@ void SslSocket::setTransportSocketCallbacks(Network::TransportSocketCallbacks& c
   BIO* bio = BIO_new_io_handle(&callbacks_->ioHandle());
   SSL_set_bio(rawSsl(), bio, bio);
   SSL_set_ex_data(rawSsl(), ContextImpl::sslSocketIndex(), static_cast<void*>(callbacks_));
+  if(ctx_->getCompressorFactory()){
+    SSL_set_ex_data(rawSsl(), ContextImpl::sslSocketIndex1(), ctx_->getCompressorFactory().get());
+  }
 }
 
 SslSocket::ReadResult SslSocket::sslReadIntoSlice(Buffer::RawSlice& slice) {

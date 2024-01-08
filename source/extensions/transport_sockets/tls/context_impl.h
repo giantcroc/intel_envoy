@@ -23,6 +23,7 @@
 #include "source/extensions/transport_sockets/tls/context_manager_impl.h"
 #include "source/extensions/transport_sockets/tls/ocsp/ocsp.h"
 #include "source/extensions/transport_sockets/tls/stats.h"
+#include "envoy/compression/compressor/factory.h"
 
 #include "absl/synchronization/mutex.h"
 #include "openssl/ssl.h"
@@ -49,11 +50,15 @@ struct TlsContext {
   bool is_ecdsa_{};
   bool is_must_staple_{};
   Ssl::PrivateKeyMethodProviderSharedPtr private_key_method_provider_{};
+  Envoy::Compression::Compressor::CompressorFactoryPtr compressor_factory_{};
 
   std::string getCertChainFileName() const { return cert_chain_file_path_; };
   bool isCipherEnabled(uint16_t cipher_id, uint16_t client_version);
   Envoy::Ssl::PrivateKeyMethodProviderSharedPtr getPrivateKeyMethodProvider() {
     return private_key_method_provider_;
+  }
+  Envoy::Compression::Compressor::CompressorFactoryPtr getCompressorFactory() {
+    return compressor_factory_;
   }
   void loadCertificateChain(const std::string& data, const std::string& data_path);
   void loadPrivateKey(const std::string& data, const std::string& data_path,
@@ -83,6 +88,8 @@ public:
   static int sslExtendedSocketInfoIndex();
 
   static int sslSocketIndex();
+
+  static int sslSocketIndex1();
   // Ssl::Context
   absl::optional<uint32_t> daysUntilFirstCertExpires() const override;
   Envoy::Ssl::CertificateDetailsPtr getCaCertInformation() const override;
@@ -90,6 +97,8 @@ public:
   absl::optional<uint64_t> secondsUntilFirstOcspResponseExpires() const override;
 
   std::vector<Ssl::PrivateKeyMethodProviderSharedPtr> getPrivateKeyMethodProviders();
+
+  Envoy::Compression::Compressor::CompressorFactoryPtr getCompressorFactory();
 
   // Validate cert asynchronously for a QUIC connection.
   ValidationResults customVerifyCertChainForQuic(

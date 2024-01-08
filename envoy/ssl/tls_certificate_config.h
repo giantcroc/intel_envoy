@@ -5,6 +5,7 @@
 
 #include "envoy/common/pure.h"
 #include "envoy/ssl/private_key/private_key.h"
+#include "envoy/compression/compressor/factory.h"
 
 namespace Envoy {
 namespace Ssl {
@@ -72,6 +73,8 @@ public:
    * ocsp response was inlined.
    */
   virtual const std::string& ocspStaplePath() const PURE;
+
+  virtual Envoy::Compression::Compressor::CompressorFactoryPtr compressorFactory() const PURE;
 };
 
 using TlsCertificateConfigPtr = std::unique_ptr<TlsCertificateConfig>;

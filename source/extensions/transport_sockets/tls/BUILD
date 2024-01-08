@@ -181,6 +181,8 @@ envoy_cc_library(
         "//source/extensions/transport_sockets/tls/private_key:private_key_manager_lib",
         "@envoy_api//envoy/admin/v3:pkg_cc_proto",
         "@envoy_api//envoy/type/matcher/v3:pkg_cc_proto",
+        "//envoy/compression/compressor:compressor_factory_interface",
+        "//source/common/buffer:buffer_lib",
     ],
 )
 
