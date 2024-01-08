@@ -185,7 +185,7 @@ message PrivateKeyProvider {
   bool fallback = 4;
 }
 
-// [#next-free-field: 9]
+// [#next-free-field: 10]
 message TlsCertificate {
   option (udpa.annotations.versioning).previous_message_type = "envoy.api.v2.auth.TlsCertificate";
 
@@ -239,6 +239,13 @@ message TlsCertificate {
   // <envoy_v3_api_field_extensions.transport_sockets.tls.v3.TlsCertificate.private_key_provider>` fields will result in an
   // error.
   PrivateKeyProvider private_key_provider = 6;
+
+  // A compressor library to use for compression. Currently only
+  // :ref:`envoy.compression.gzip.compressor<envoy_v3_api_msg_extensions.compression.gzip.compressor.v3.Gzip>`
+  // is included in Envoy.
+  // [#extension-category: envoy.compression.compressor]
+  config.core.v3.TypedExtensionConfig compressor_library = 9
+      [(validate.rules).message = {required: true}];
 
   // The password to decrypt the TLS private key. If this field is not set, it is assumed that the
   // TLS private key is not password encrypted.

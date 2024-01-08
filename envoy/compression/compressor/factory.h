@@ -15,7 +15,7 @@ public:
   virtual const std::string& contentEncoding() const PURE;
 };
 
-using CompressorFactoryPtr = std::unique_ptr<CompressorFactory>;
+using CompressorFactoryPtr = std::shared_ptr<CompressorFactory>;
 
 } // namespace Compressor
 } // namespace Compression

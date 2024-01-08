@@ -6,6 +6,7 @@
 #include "envoy/extensions/transport_sockets/tls/v3/cert.pb.h"
 #include "envoy/ssl/private_key/private_key.h"
 #include "envoy/ssl/tls_certificate_config.h"
+#include "envoy/compression/compressor/factory.h"
 
 namespace Envoy {
 namespace Ssl {
@@ -29,6 +30,9 @@ public:
   Envoy::Ssl::PrivateKeyMethodProviderSharedPtr privateKeyMethod() const override {
     return private_key_method_;
   }
+  Envoy::Compression::Compressor::CompressorFactoryPtr compressorFactory() const {
+    return compressor_factory_;
+  }
 
 private:
   const std::string certificate_chain_;
@@ -42,6 +46,7 @@ private:
   const std::vector<uint8_t> ocsp_staple_;
   const std::string ocsp_staple_path_;
   Envoy::Ssl::PrivateKeyMethodProviderSharedPtr private_key_method_{};
+  Envoy::Compression::Compressor::CompressorFactoryPtr compressor_factory_{};
 };
 
 } // namespace Ssl

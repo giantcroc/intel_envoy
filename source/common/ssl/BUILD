@@ -13,6 +13,10 @@ envoy_cc_library(
     srcs = ["tls_certificate_config_impl.cc"],
     hdrs = ["tls_certificate_config_impl.h"],
     deps = [
+        "//envoy/compression/compressor:compressor_factory_interface",
+        "//envoy/compression/compressor:compressor_config_interface",
+        "//source/common/config:utility_lib",
+        "//source/extensions/filters/http/common:factory_base_lib",
         "//envoy/server:transport_socket_config_interface",
         "//envoy/ssl:tls_certificate_config_interface",
         "//envoy/ssl/private_key:private_key_interface",

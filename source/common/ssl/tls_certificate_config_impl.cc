@@ -8,6 +8,10 @@
 #include "source/common/common/fmt.h"
 #include "source/common/config/datasource.h"
 
+#include "envoy/compression/compressor/config.h"
+
+#include "source/common/config/utility.h"
+
 namespace Envoy {
 namespace Ssl {
 
@@ -84,6 +88,22 @@ TlsCertificateConfigImpl::TlsCertificateConfigImpl(
       throw EnvoyException(
           fmt::format("Failed to load incomplete private key from path: {}", private_key_path_));
     }
+  }
+  const std::string type{TypeUtil::typeUrlToDescriptorFullName(
+      config.compressor_library().typed_config().type_url())};
+  Compression::Compressor::NamedCompressorLibraryConfigFactory* const config_factory =
+      Registry::FactoryRegistry<
+          Compression::Compressor::NamedCompressorLibraryConfigFactory>::getFactoryByType(type);
+  if (config_factory == nullptr) {
+    throw EnvoyException(
+        fmt::format("Didn't find a registered implementation for type: '{}'", type));
+  }
+  if(config.has_compressor_library()){
+    ProtobufTypes::MessagePtr message = Config::Utility::translateAnyToFactoryConfig(
+      config.compressor_library().typed_config(), factory_context.serverFactoryContext().messageValidationVisitor(),
+      *config_factory);
+    compressor_factory_ =
+      config_factory->createCompressorFactoryFromProto(*message, factory_context.serverFactoryContext());
   }
 }
 
