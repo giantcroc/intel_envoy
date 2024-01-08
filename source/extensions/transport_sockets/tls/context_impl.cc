@@ -103,10 +103,8 @@ static int qatzip_compress(SSL *, CBB* out,
                          const uint8_t *in, size_t inlen)
 {
 
-
-    unsigned int outlen = compressBound(inlen);
-
-    uint8_t * outbuf =new uint8_t[outlen];
+    unsigned int outlen=1024;
+    uint8_t * outbuf =static_cast<uint8_t*>(qzMalloc(1024, 0, PINNED_MEM));
 
     unsigned int inllen = inlen;
 
