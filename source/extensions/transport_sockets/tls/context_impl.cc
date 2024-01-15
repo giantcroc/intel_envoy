@@ -89,16 +89,9 @@ static int compressor_compress(SSL *ssl, CBB* out,
                                   static_cast<Envoy::Compression::Compressor::CompressorFactory*>(SSL_get_ex_data(
                                   ssl, ContextImpl::sslSocketIndex1()));
 
-    for(size_t i=0;i<inlen;i++){
-      printf("%d ",in[i]);
-    }
-    printf("\n");
     Envoy::Compression::Compressor::CompressorPtr compressor= compressor_factory->createCompressor();
     Buffer::OwnedImpl buffer(in, inlen);
     Buffer::OwnedImpl accumulation_buffer;
-    // compressor->compress(buffer, Envoy::Compression::Compressor::State::Flush);
-    // accumulation_buffer.add(buffer);
-    // buffer.drain(buffer.length());
     compressor->compress(buffer, Envoy::Compression::Compressor::State::Finish);
     accumulation_buffer.add(buffer);
 
@@ -106,10 +99,6 @@ static int compressor_compress(SSL *ssl, CBB* out,
     uint8_t * outbuf =new uint8_t[outlen];
     accumulation_buffer.copyOut(0, outlen, outbuf);
 
-    for(size_t i=0;i<outlen;i++){
-      printf("%d ",outbuf[i]);
-    }
-    printf("\n");
     CBB_add_bytes(out, outbuf, outlen);
     return 1;
 }
