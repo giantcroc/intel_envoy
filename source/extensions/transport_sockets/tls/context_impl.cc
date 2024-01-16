@@ -85,6 +85,7 @@ static int compressor_compress(SSL *ssl, CBB* out,
                          const uint8_t *in, size_t inlen)
 {
 
+    ENVOY_LOG_MISC(debug, "uncompressed_len:{}", inlen);
     Envoy::Compression::Compressor::CompressorFactory* compressor_factory =
                                   static_cast<Envoy::Compression::Compressor::CompressorFactory*>(SSL_get_ex_data(
                                   ssl, ContextImpl::sslSocketIndex1()));
@@ -98,7 +99,7 @@ static int compressor_compress(SSL *ssl, CBB* out,
     const size_t outlen = accumulation_buffer.length();
     uint8_t * outbuf =new uint8_t[outlen];
     accumulation_buffer.copyOut(0, outlen, outbuf);
-
+    ENVOY_LOG_MISC(debug, "compressed_len:{}", outlen);
     CBB_add_bytes(out, outbuf, outlen);
     return 1;
 }

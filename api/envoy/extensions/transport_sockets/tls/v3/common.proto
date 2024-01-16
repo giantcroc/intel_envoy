@@ -244,8 +244,7 @@ message TlsCertificate {
   // :ref:`envoy.compression.gzip.compressor<envoy_v3_api_msg_extensions.compression.gzip.compressor.v3.Gzip>`
   // is included in Envoy.
   // [#extension-category: envoy.compression.compressor]
-  config.core.v3.TypedExtensionConfig compressor_library = 9
-      [(validate.rules).message = {required: true}];
+  config.core.v3.TypedExtensionConfig compressor_library = 9;
 
   // The password to decrypt the TLS private key. If this field is not set, it is assumed that the
   // TLS private key is not password encrypted.
