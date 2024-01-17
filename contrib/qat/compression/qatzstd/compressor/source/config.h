@@ -70,7 +70,7 @@ public:
 private:
   Envoy::Compression::Compressor::CompressorFactoryPtr createCompressorFactoryFromProtoTyped(
       const envoy::extensions::compression::qatzstd::compressor::v3alpha::Qatzstd& config,
-      Server::Configuration::FactoryContext& context) override;
+      Server::Configuration::ServerFactoryContext& context) override;
 };
 
 DECLARE_FACTORY(QatzstdCompressorLibraryFactory);

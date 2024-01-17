@@ -36,8 +36,10 @@ static_resources:
               compressor_library:
                 name: text_optimized
                 typed_config:
-                  "@type": type.googleapis.com/envoy.extensions.compression.zstd.compressor.v3.Zstd
+                  "@type": type.googleapis.com/envoy.extensions.compression.qatzstd.compressor.v3alpha.Qatzstd
                   compression_level: 1
+                  enable_qat_zstd: true
+                  qat_zstd_fallback_threshold: 0
 
 admin:
   address:
